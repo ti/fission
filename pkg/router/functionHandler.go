@@ -224,12 +224,14 @@ func (roundTripper *RetryingRoundTripper) RoundTrip(req *http.Request) (*http.Re
 			req.URL.Scheme = roundTripper.serviceUrl.Scheme
 			req.URL.Host = roundTripper.serviceUrl.Host
 
-			// To keep the function run container simple, it
-			// doesn't do any routing.  In the future if we have
-			// multiple functions per container, we could use the
-			// function metadata here.
-			// leave the query string intact (req.URL.RawQuery)
-			req.URL.Path = "/"
+			// Allow gateway set Real Request Url, for exp: X-Request-Url: /do/something
+			reqURL := req.Header.Get("X-Request-Url")
+			if reqURL != "" {
+				req.URL.Path = reqURL
+			} else {
+				req.URL.Path = "/"
+			}
+
 
 			// Overwrite request host with internal host,
 			// or request will be blocked in some situations
